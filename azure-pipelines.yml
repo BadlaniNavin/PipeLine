@@ -1,5 +1,5 @@
 trigger:
-- master
+- main
 
 extends:
     template: deployment/manifests/templates/stages.yml
