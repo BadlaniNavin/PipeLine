@@ -1,5 +1,8 @@
 trigger:
 - main
 
+pool:
+  vmImage: 'ubuntu-latest'
+
 extends:
     template: deployment/manifests/templates/stages.yml
