@@ -1,5 +1,47 @@
 trigger:
 - main
 
-extends:
-    template: deployment/manifests/templates/stages.yml
+pool:
+  vmImage: 'ubuntu-latest' # Or 'ubuntu-latest' or 'macOS-latest' depending on your needs
+
+variables:
+  buildConfiguration: 'Release' # Or 'Debug'
+  dotNetSdkVersion: '8.0.x'    # Specify your desired .NET SDK version
+
+steps:
+- task: UseDotNet@2
+  displayName: 'Use .NET SDK $(dotNetSdkVersion)'
+  inputs:
+    packageType: 'sdk'
+    version: '$(dotNetSdkVersion)'
+
+- task: NuGetToolInstaller@1
+  displayName: 'Use NuGet Tool Installer'
+
+- task: NuGetCommand@2
+  displayName: 'Restore NuGet packages'
+  inputs:
+    restoreSolution: '**/*.sln'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build the project'
+  inputs:
+    command: 'build'
+    projects: '**/*.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Publish the project'
+  inputs:
+    command: 'publish'
+    projects: '**/*.csproj'
+    publishWebProjects: true
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifacts'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
