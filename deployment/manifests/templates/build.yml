@@ -1,0 +1,59 @@
+jobs:
+- job: DownloadBuildTest
+  displayName: "Prepare project for deployment"
+  
+  variables:
+  - name: WorkingDirectory
+    value: '$(System.DefaultWorkingDirectory)/API'
+  - name: BuildPlatform
+    value: 'Any CPU'
+  - name: BuildConfiguration
+    value: 'Release'
+  - name: PublishDirectory
+    value: '$(System.DefaultWorkingDirectory)/publish'
+  - name: ArtifactName
+    value: 'apiversionsbins'
+  - name: ArchiveName
+    value: 'apiversions.tar.gz'
+    
+  steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET 8 SDK'
+    inputs:
+      packageType: 'sdk'
+      version: '8.0.x'
+      performMultiLevelLookup: true
+      
+  - task: DotNetCoreCLI@2
+    displayName: 'Restore'
+    inputs:
+      command: 'restore'
+      projects: 'src/*.sln'
+      feedToUse: 'config'
+      nugetConfigPath: 'Nuget.Config'
+      
+  - task: DotNetCoreCLI@2
+    displayName: 'Build'
+    inputs:
+      command: 'build'
+      projects: '$(WorkingDirectory)/*.sln'
+      workingDirectory: '$(WorkingDirectory)'
+      arguments: '--configuration $(BuildConfiguration)'
+      
+  - task: DotNetCoreCLI@2
+    displayName: 'Publish the project'
+    inputs:
+        command: 'publish'
+        projects: '$(WorkingDirectory)/*api/*.csproj'
+        publishWebProjects: true
+        arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+        zipAfterPublish: true
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifacts'
+    inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
+      
+    

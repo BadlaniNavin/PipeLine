@@ -1,0 +1,5 @@
+trigger:
+- master
+
+extends:
+    template: deployment/manifests/templates/stages.yml

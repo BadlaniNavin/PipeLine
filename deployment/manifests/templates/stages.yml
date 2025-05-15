@@ -1,0 +1,6 @@
+stages:
+- stage: BuildAndTest
+  displayName: "Build"
+  pool: "ubuntu-latest"
+  jobs:
+  - template: build.yml
